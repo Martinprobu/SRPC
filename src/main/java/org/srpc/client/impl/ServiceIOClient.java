@@ -17,13 +17,15 @@ import java.net.Socket;
  * @auth BillWu
  * @since 2018-01-01
  */
-public class ServiceClient<T> {
+public class ServiceIOClient<T> {
 
-    public static <T> T getRpc(final Class serviceInterface, final InetSocketAddress add) throws IOException {
+    public static <T> T getRpc(final Class serviceInterface, final String hostName, final int port) throws IOException {
         return (T)Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class[]{serviceInterface},
                 new InvocationHandler() {
+                    @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        System.out.println("Proxy.newProxyInstance proxy method is " + method + method.getParameterTypes());
+                        System.out.println("IO Proxy.newProxyInstance proxy method is " + method + method.getParameterTypes());
+                        InetSocketAddress add = new InetSocketAddress(hostName, port);
                         Socket socket = null;
                         ObjectOutputStream output = null;
                         ObjectInputStream input = null;
@@ -31,6 +33,7 @@ public class ServiceClient<T> {
                             socket = new Socket();
                             socket.connect(add);
                             output = new ObjectOutputStream(socket.getOutputStream());
+                            //output methods to the proxy class
                             output.writeUTF(serviceInterface.getName());
                             output.writeUTF(method.getName());
                             output.writeObject(method.getParameterTypes());
